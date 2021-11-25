@@ -3112,9 +3112,10 @@ static int lfs_file_rawtruncate(lfs_t *lfs, lfs_file_t *file, lfs_off_t size) {
         }
 
         // lookup new head in ctz skip list
+        lfs_off_t off = (size > 0 ? 1 : 0);
         err = lfs_ctz_find(lfs, NULL, &file->cache,
                 file->ctz.head, file->ctz.size,
-                size, &file->block, &file->off);
+                size - off, &file->block, &file->off);
         if (err) {
             return err;
         }
@@ -3122,6 +3123,7 @@ static int lfs_file_rawtruncate(lfs_t *lfs, lfs_file_t *file, lfs_off_t size) {
         // need to set pos/block/off consistently so seeking back to
         // the old position does not get confused
         file->pos = size;
+        file->off += off;
         file->ctz.head = file->block;
         file->ctz.size = size;
         file->flags |= LFS_F_DIRTY | LFS_F_READING;
